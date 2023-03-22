@@ -1,0 +1,35 @@
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+{
+  "manifestVersion": "2.0.0",
+  "signatureType": "private",
+  "signedByOrg": "antreaflowvisibility",
+  "signedByOrgName": "theia",
+  "rootUrls": [
+    "http://localhost:3000/"
+  ],
+  "plugin": "theia-grafana-chord-plugin",
+  "version": "1.0.0",
+  "time": 1679506946887,
+  "keyId": "7e4d0c6a708866e7",
+  "files": {
+    "CHANGELOG.md": "b38723f691a2cb3449e838ddbe88f922a812d514130e5fe691083a15ee56f7a7",
+    "module.js.map": "e0deca8cd397c4c257349a51fe6a4948e44f681615a25967103c7200b18b6b6f",
+    "plugin.json": "a6064cb047ba37a7bb5f5b501962070e68728177a065a057ebc53f198c16bb9a",
+    "README.md": "bd1097d524db667f2fe5fcaf601e99ee53190704cdab92eb5e56cc44d5424f50",
+    "module.js": "79681e37fab49fe23280824f2cdb00bc40fa61ebf3124f197d0e9df232ee9a17"
+  }
+}
+-----BEGIN PGP SIGNATURE-----
+Version: OpenPGP.js v4.10.10
+Comment: https://openpgpjs.org
+
+wrkEARMKAAYFAmQbPgMAIQkQfk0ManCIZucWIQTzOyW2kQdOhGNlcPN+TQxq
+cIhm57zaAgkBML75QJmH3aBimeX47tFW49W6ruGgz5iQyJyrifyB1qEfNGni
+bWGb1TY7nVKLUXvG84KzXLzopTzYZ0tjNv4qfG8CCQGEFbLqe4agBosB3ybG
+OtZtCdj0OADL6rFnFZmSKcwntnR5pvNov8v3OgRTmCvh2MOrcHfeF2cFYt3Y
+RlYNhmxrYg==
+=UqOh
+-----END PGP SIGNATURE-----
