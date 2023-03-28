@@ -1,22 +1,32 @@
-# Grafana Chord Panel Plugin
+# Grafana Dependency Plugin
 
-## What is Grafana Chord Panel Plugin?
+## What is Grafana Dependency Plugin?
 
-Grafana Chord Panel Plugin enables users to create Chord Diagram panel in Grafana
-Dashboards. It is used to visualize the network connections. Connections with
-NetworkPolicy enforced will be highlighted. We use green color to highlight
-the connection with "Allow" NetworkPolicy enforced, red color to highlight the
-connection with "Deny" NetworkPolicy enforced. Panels are the building blocks
-of Grafana. They allow you to visualize data in different ways. For more
-information about panels, refer to the documentation on
-[Panels](https://grafana.com/docs/grafana/latest/features/panels/panels/).
-An example of Chord Panel Plugin:
+Grafana Service Dependency Plugin allows users to visualize how Pods send
+and receive traffic to and from other Pods and Services. To help visualize the
+flows, the plugin shows them 'inside' the Node they are a part of.
 
-<img src="https://downloads.antrea.io/static/05232022/chord-plugin-example.png" width="900" alt="Chord Panel Plugin Example">
+```mermaid
+graph LR;
+subgraph worker_node
+worker_pod_1
+worker_pod_2
+end;
+```
+
+A line pointing from source to destination is also shown, with the amount of
+data transmitted in the selected time range labelling the line.
+
+```mermaid
+graph LR;
+subgraph worker_node
+worker_pod_1 -- 8.4 MB --> worker_pod_2
+end;
+```
 
 ## Acknowledgements
 
-The Chord Plugin is created using [D3.js](https://d3js.org/).
+The Service Dependency Graph Plugin is created using [mermaid-js](https://mermaid-js.github.io/mermaid/#/)
 
 ## Data Source
 
@@ -26,43 +36,33 @@ Supported Databases:
 
 ## Queries Convention
 
-Currently the Chord Plugin is created for restricted uses, only for visualizing
-network flows between the source and destination, with enforced NetworkPolicy
-metadata. For correct loading of the data for the Chord Plugin, the query is
-expected to return the following fields, in arbitrary order.
+Currently the Service Dependency Graph Plugin is created for restricted uses,
+only for visualizing transmitted data between Pods and Services. For correct
+loading of data for the Service Dependency Graph Plugin, the query is expected
+to return the following fields, in arbitrary order.
 
-- field 1: value to group by with name or an alias of `srcPod`
-- field 2: value to group by with name or an alias of `srcPort`
-- field 3: value to group by with name or an alias of `dstSvc`
-- field 4: value to group by with name or an alias of `dstSvcPort`
-- field 5: value to group by with name or an alias of `dstPod`
-- field 6: value to group by with name or an alias of `dstPort`
-- field 7: value to group by with name or an alias of `dstIP`
-- field 8: the metric value field with an alias of `bytes`
-- field 9: the metric value field with an alias of `revBytes`
-- field 10: value to group by with name or an alias of `egressNetworkPolicyName`
-- field 11: value to group by with name or an alias of `egressNetworkPolicyRuleAction`
-- field 12: value to group by with name or an alias of `ingressNetworkPolicyName`
-- field 13: value to group by with name or an alias of `ingressNetworkPolicyRuleAction`
+- field 1: sourcePodName value with name or an alias of `sourcePodName`
+- field 2: sourceNodeName value with name or an alias of `sourceNodeName`
+- field 3: destinationPodName value with name or an alias of `destinationPodName`
+- field 4: destinationNodeName value with name or an alias of `destinationNodeName`
+- field 5: destinationServicePortName value with name or an alias of `destinationServicePortName`
+- field 6: octetDeltaCount value with name or an alias of `octetDeltaCount`
 
-Clickhouse query example:
+ClickHouse query example:
 
 ```sql
-SELECT sourcePodName as srcPod,
-destinationPodName as dstPod,
-sourceTransportPort as srcPort,
-destinationTransportPort as dstPort,
-destinationServicePort as dstSvcPort,
-destinationServicePortName as dstSvc,
-destinationIP as dstIP,
-SUM(octetDeltaCount) as bytes,
-SUM(reverseOctetDeltaCount) as revBytes,
-egressNetworkPolicyName,
-egressNetworkPolicyRuleAction,
-ingressNetworkPolicyName,
-ingressNetworkPolicyRuleAction
-from flows
-GROUP BY srcPod, dstPod, srcPort, dstPort, dstSvcPort, dstSvc, dstIP, egressNetworkPolicyName, egressNetworkPolicyRuleAction, ingressNetworkPolicyName, ingressNetworkPolicyRuleAction
+SELECT sourcePodName,
+sourceNodeName,
+destinationPodName,
+destinationNodeName,
+destinationServicePortName,
+octetDeltaCount
+FROM flows
+WHERE destinationPodName != ''
+AND sourcePodName != ''
+AND octetDeltaCount != 0
+AND $__timeFilter(flowEndSeconds)
+ORDER BY flowEndSeconds DESC
 ```
 
 ## Installation
@@ -75,7 +75,7 @@ For local instances, plugins are installed and updated via a simple CLI command.
 Use the grafana-cli tool to install chord-panel-plugin from the commandline:
 
 ```shell
-grafana-cli --pluginUrl https://downloads.antrea.io/artifacts/grafana-custom-plugins/theia-grafana-chord-plugin-1.0.0.zip plugins install theia-grafana-chord-plugin
+grafana-cli --pluginUrl https://downloads.antrea.io/artifacts/grafana-custom-plugins/theia-grafana-dependency-plugin-1.0.0.zip plugins install theia-grafana-dependency-plugin
 ```
 
 The plugin will be installed into your grafana plugins directory; the default is
@@ -84,7 +84,7 @@ The plugin will be installed into your grafana plugins directory; the default is
 Alternatively, you can manually download the .zip file and unpack it into your grafana
 plugins directory.
 
-[Download](https://downloads.antrea.io/artifacts/grafana-custom-plugins/theia-grafana-chord-plugin-1.0.0.zip)
+[Download](https://downloads.antrea.io/artifacts/grafana-custom-plugins/theia-grafana-dependency-plugin-1.0.0.zip)
 
 Installing to a Grafana deployed on Kubernetes:
 
@@ -94,7 +94,7 @@ as below:
 ```yaml
 env:
 - name: GF_INSTALL_PLUGINS
-   value: "https://downloads.antrea.io/artifacts/grafana-custom-plugins/theia-grafana-chord-plugin-1.0.0.zip;theia-grafana-chord-plugin"
+   value: "https://downloads.antrea.io/artifacts/grafana-custom-plugins/theia-grafana-dependency-plugin-1.0.0.zip;theia-grafana-dependency-plugin"
 ```
 
 ### 2. Add the Panel to a Dashboard
@@ -113,7 +113,7 @@ the plugin and do local testings:
 1. Install dependencies
 
    ```bash
-   cd grafana-chord-plugin
+   cd grafana-dependency-plugin
    yarn install
    ```
 
